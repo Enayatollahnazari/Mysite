@@ -1,0 +1,1863 @@
+<h2>  </h2>
+<input id="name" placeholder=" ">
+<input id="price" placeholder="">
+<input id="image" placeholder="  ">
+<button onclick="addProduct(
+  document.getElementById('name').value,
+  document.getElementById('price').value,
+  document.getElementById('image').value
+)"> </button>
+
+<hr>
+
+<h2> </h2>
+<div id="product-list"></div>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خدمات مجازی تیم جهان - WorldApiTM</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="ارائه دهنده معتبر خدمات دیجیتال و مجازی - تلگرام پرمیوم، گیفت کارت، یوسی پابجی">
+    <meta name="keywords" content="خدمات مجازی, تلگرام پرمیوم, گیفت کارت, یوسی پابجی, WorldApiTM">
+    <meta name="author" content="WorldApiTM Team">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'vazir': ['Vazir', 'sans-serif']
+                    },
+                    colors: {
+                        primary: '#667eea',
+                        secondary: '#764ba2'
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Vazir', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Mobile First Responsive Design */
+        @media (max-width: 640px) {
+            .mobile-text-sm { font-size: 0.875rem; }
+            .mobile-text-base { font-size: 1rem; }
+            .mobile-text-lg { font-size: 1.125rem; }
+            .mobile-text-xl { font-size: 1.25rem; }
+            .mobile-text-2xl { font-size: 1.5rem; }
+            .mobile-text-3xl { font-size: 1.875rem; }
+            .mobile-px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+            .mobile-px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .mobile-py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+            .mobile-py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+            .mobile-mb-2 { margin-bottom: 0.5rem; }
+            .mobile-mb-4 { margin-bottom: 1rem; }
+            .mobile-gap-2 { gap: 0.5rem; }
+            .mobile-gap-3 { gap: 0.75rem; }
+        }
+        
+        /* Tablet Responsive */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .tablet-text-lg { font-size: 1.125rem; }
+            .tablet-text-xl { font-size: 1.25rem; }
+            .tablet-text-2xl { font-size: 1.5rem; }
+            .tablet-px-4 { padding-left: 1rem; padding-right: 1rem; }
+            .tablet-py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        }
+        
+        /* Desktop/Laptop Full Screen */
+        @media (min-width: 1025px) {
+            .desktop-full-height { min-height: 100vh; }
+            .desktop-text-4xl { font-size: 2.25rem; }
+            .desktop-text-5xl { font-size: 3rem; }
+        }
+        
+        /* Navigation responsive */
+        .nav-mobile {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-desktop { display: none; }
+            .nav-mobile { display: flex; }
+        }
+        
+        @media (min-width: 769px) {
+            .nav-desktop { display: flex; }
+            .nav-mobile { display: none; }
+        }
+        
+        /* Full viewport coverage */
+        .full-viewport {
+            width: 100vw;
+            min-height: 100vh;
+        }
+        
+        /* Container responsive */
+        .container-responsive {
+            width: 100%;
+            max-width: 100%;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        /* Pulse animation for highlighted products */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            }
+        }
+        
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #2d3748;
+        }
+        
+        .dark-mode .text-gray-900 {
+            color: #e2e8f0;
+        }
+        
+        .dark-mode .text-gray-600 {
+            color: #cbd5e0;
+        }
+        
+        .dark-mode .bg-gray-50 {
+            background-color: #4a5568;
+        }
+        
+        @media (min-width: 640px) {
+            .container-responsive {
+                max-width: 640px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .container-responsive {
+                max-width: 768px;
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .container-responsive {
+                max-width: 1024px;
+                padding-left: 2rem;
+                padding-right: 2rem;
+            }
+        }
+        
+        @media (min-width: 1280px) {
+            .container-responsive {
+                max-width: 1280px;
+            }
+        }
+        
+        @media (min-width: 1536px) {
+            .container-responsive {
+                max-width: 1536px;
+            }
+        }
+        
+        /* Loading animation */
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            z-index: 1000;
+            max-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 40;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-50 transition-colors duration-300">
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">🌙</span>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg w-full">
+        <div class="container-responsive">
+            <!-- Desktop Navigation -->
+            <div class="nav-desktop justify-between items-center h-16 lg:h-20">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0" id="site-logo-container">
+                        <div id="default-text-logo">
+                            <h1 class="text-white text-xl lg:text-2xl font-bold">WorldApiTM</h1>
+                            <p class="text-purple-200 text-sm lg:text-base">خدمات مجازی تیم جهان</p>
+                        </div>
+                        <div id="custom-logo" class="hidden">
+                            <img id="site-logo-img" src="" alt="لوگوی سایت" class="h-12 lg:h-16 w-auto max-w-48" onerror="showDefaultLogo()">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex space-x-4 space-x-reverse items-center">
+                    <button onclick="showPage('home')" class="text-white hover:text-purple-200 px-3 py-2 rounded-md text-sm lg:text-base font-medium transition-colors">
+                        خانه
+                    </button>
+                    <button onclick="showPage('shop')" class="text-white hover:text-purple-200 px-3 py-2 rounded-md text-sm lg:text-base font-medium transition-colors">
+                        فروشگاه
+                    </button>
+                    <button id="admin-panel-btn" onclick="showPage('admin')" class="hidden text-white hover:text-purple-200 px-3 py-2 rounded-md text-sm lg:text-base font-medium transition-colors bg-purple-600 bg-opacity-30 rounded-lg">
+                        🔧 پنل مدیریت
+                    </button>
+                    <div id="auth-buttons">
+                        <button onclick="showUserLoginPage()" class="bg-blue-500 text-white hover:bg-blue-600 px-3 lg:px-4 py-2 rounded-md text-sm lg:text-base font-medium transition-colors ml-2">
+                            👤 ورود کاربر
+                        </button>
+                        <button onclick="showOwnerLoginPage()" class="bg-yellow-400 text-gray-900 hover:bg-yellow-300 px-3 lg:px-4 py-2 rounded-md text-sm lg:text-base font-bold transition-colors shadow-lg">
+                            🔐 ورود مالک
+                        </button>
+                    </div>
+                    <div id="user-menu" class="hidden">
+                        <span class="text-white ml-4 text-sm lg:text-base">خوش آمدید، <span id="user-name"></span></span>
+                        <button onclick="logout()" class="bg-red-500 text-white hover:bg-red-600 px-3 lg:px-4 py-2 rounded-md text-sm lg:text-base font-medium transition-colors">
+                            خروج
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Navigation -->
+            <div class="nav-mobile py-4">
+                <div class="flex justify-between items-center mb-4">
+                    <div id="mobile-logo-container">
+                        <div id="mobile-default-text-logo">
+                            <h1 class="text-white mobile-text-lg font-bold">WorldApiTM</h1>
+                            <p class="text-purple-200 mobile-text-sm">خدمات مجازی تیم جهان</p>
+                        </div>
+                        <div id="mobile-custom-logo" class="hidden">
+                            <img id="mobile-site-logo-img" src="" alt="لوگوی سایت" class="h-8 sm:h-10 w-auto max-w-32" onerror="showDefaultLogo()">
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileMenu()" class="text-white text-2xl">
+                        <span id="menu-icon">☰</span>
+                    </button>
+                </div>
+                
+                <div id="mobile-menu" class="hidden space-y-3">
+                    <button onclick="showPage('home')" class="block w-full text-right text-white hover:text-purple-200 mobile-px-3 mobile-py-2 rounded-md mobile-text-base font-medium transition-colors">
+                        خانه
+                    </button>
+                    <button onclick="showPage('shop')" class="block w-full text-right text-white hover:text-purple-200 mobile-px-3 mobile-py-2 rounded-md mobile-text-base font-medium transition-colors">
+                        فروشگاه
+                    </button>
+                    <button id="admin-panel-btn-mobile" onclick="showPage('admin')" class="hidden block w-full text-right text-white hover:text-purple-200 mobile-px-3 mobile-py-2 rounded-md mobile-text-base font-medium transition-colors bg-purple-600 bg-opacity-30">
+                        🔧 پنل مدیریت
+                    </button>
+                    
+                    <div id="auth-buttons-mobile" class="space-y-2 pt-2 border-t border-purple-300">
+                        <button onclick="showUserLoginPage()" class="block w-full bg-blue-500 text-white hover:bg-blue-600 mobile-px-3 mobile-py-2 rounded-md mobile-text-base font-medium transition-colors">
+                            👤 ورود کاربر
+                        </button>
+                        <button onclick="showOwnerLoginPage()" class="block w-full bg-yellow-400 text-gray-900 hover:bg-yellow-300 mobile-px-3 mobile-py-2 rounded-md mobile-text-base font-bold transition-colors">
+                            🔐 ورود مالک
+                        </button>
+                    </div>
+                    
+                    <div id="user-menu-mobile" class="hidden pt-2 border-t border-purple-300">
+                        <p class="text-white mobile-text-base mb-2">خوش آمدید، <span id="user-name-mobile"></span></p>
+                        <button onclick="logout()" class="block w-full bg-red-500 text-white hover:bg-red-600 mobile-px-3 mobile-py-2 rounded-md mobile-text-base font-medium transition-colors">
+                            خروج
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Page -->
+    <div id="home-page" class="page full-viewport desktop-full-height">
+        <!-- Hero Section -->
+        <div class="gradient-bg min-h-full flex items-center">
+            <div class="container-responsive py-8 sm:py-12 md:py-16 lg:py-20">
+                <div class="text-center">
+                    <h1 class="mobile-text-2xl sm:text-3xl md:text-4xl lg:text-5xl desktop-text-5xl font-bold text-white mobile-mb-4 mb-6">
+                        خدمات مجازی تیم جهان
+                    </h1>
+                    <p class="mobile-text-base sm:text-lg md:text-xl lg:text-2xl text-purple-200 mobile-mb-4 mb-8 max-w-3xl mx-auto">
+                        ارائه دهنده معتبر خدمات دیجیتال و مجازی
+                    </p>
+                    <button onclick="showPage('shop')" class="bg-white text-purple-600 hover:bg-purple-50 mobile-px-3 mobile-py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 rounded-lg mobile-text-base sm:text-lg lg:text-xl font-semibold transition-colors shadow-lg">
+                        مشاهده محصولات
+                    </button>
+                    
+                    <!-- Rotating Product Showcase -->
+                    <div class="mt-8 lg:mt-12">
+                        <div id="product-showcase" class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 lg:p-6 max-w-md mx-auto cursor-pointer hover:bg-opacity-30 transition-all duration-300 transform hover:scale-105" onclick="goToProduct()">
+                            <div class="text-center">
+                                <div id="showcase-image" class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mb-3 lg:mb-4 rounded-lg bg-white bg-opacity-50 flex items-center justify-center text-2xl lg:text-3xl overflow-hidden">
+                                    💎
+                                </div>
+                                <div id="showcase-category" class="text-white text-sm lg:text-base font-medium bg-white bg-opacity-20 rounded-full px-3 py-1 inline-block">
+                                    تلگرام پرمیوم
+                                </div>
+                                <div class="mt-2 text-white text-xs lg:text-sm opacity-75">
+                                    کلیک کنید برای مشاهده
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dots indicator -->
+                        <div class="flex justify-center mt-4 space-x-2 space-x-reverse">
+                            <div id="dot-0" class="w-2 h-2 lg:w-3 lg:h-3 rounded-full bg-white bg-opacity-50 transition-all duration-300"></div>
+                            <div id="dot-1" class="w-2 h-2 lg:w-3 lg:h-3 rounded-full bg-white bg-opacity-50 transition-all duration-300"></div>
+                            <div id="dot-2" class="w-2 h-2 lg:w-3 lg:h-3 rounded-full bg-white bg-opacity-50 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="py-8 sm:py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-800 w-full">
+            <div class="container-responsive">
+                <div class="text-center mobile-mb-4 mb-8 lg:mb-12">
+                    <h2 class="mobile-text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mobile-mb-2 mb-4">چرا ما را انتخاب کنید؟</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mobile-gap-3 gap-6 lg:gap-8">
+                    <div class="text-center mobile-py-4 p-6 lg:p-8 bg-gray-50 dark:bg-gray-700 rounded-lg card-hover">
+                        <div class="mobile-text-2xl text-4xl lg:text-5xl mobile-mb-2 mb-4">⚡</div>
+                        <h3 class="mobile-text-lg text-xl lg:text-2xl font-semibold mobile-mb-2 mb-3 text-gray-900 dark:text-white">تحویل سریع</h3>
+                        <p class="mobile-text-sm text-gray-600 dark:text-gray-300 lg:text-lg">تمام خدمات در کمترین زمان ممکن تحویل داده می‌شود</p>
+                    </div>
+                    <div class="text-center mobile-py-4 p-6 lg:p-8 bg-gray-50 dark:bg-gray-700 rounded-lg card-hover">
+                        <div class="mobile-text-2xl text-4xl lg:text-5xl mobile-mb-2 mb-4">🔒</div>
+                        <h3 class="mobile-text-lg text-xl lg:text-2xl font-semibold mobile-mb-2 mb-3 text-gray-900 dark:text-white">امنیت بالا</h3>
+                        <p class="mobile-text-sm text-gray-600 dark:text-gray-300 lg:text-lg">تمام تراکنش‌ها با بالاترین سطح امنیت انجام می‌شود</p>
+                    </div>
+                    <div class="text-center mobile-py-4 p-6 lg:p-8 bg-gray-50 dark:bg-gray-700 rounded-lg card-hover sm:col-span-2 lg:col-span-1">
+                        <div class="mobile-text-2xl text-4xl lg:text-5xl mobile-mb-2 mb-4">💎</div>
+                        <h3 class="mobile-text-lg text-xl lg:text-2xl font-semibold mobile-mb-2 mb-3 text-gray-900 dark:text-white">کیفیت برتر</h3>
+                        <p class="mobile-text-sm text-gray-600 dark:text-gray-300 lg:text-lg">تنها محصولات با کیفیت و اصل ارائه می‌دهیم</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Page -->
+    <div id="shop-page" class="page hidden full-viewport desktop-full-height bg-white dark:bg-gray-800">
+        <div class="container-responsive py-6 sm:py-8 lg:py-12 min-h-full">
+            <div class="text-center mobile-mb-4 mb-6 lg:mb-8">
+                <h1 class="mobile-text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mobile-mb-2 mb-4">فروشگاه خدمات مجازی</h1>
+                <p class="mobile-text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300">بهترین خدمات دیجیتال را از ما تهیه کنید</p>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="mobile-mb-4 mb-6 lg:mb-8">
+                <div class="flex flex-col sm:flex-row mobile-gap-2 gap-3 lg:gap-4 items-center justify-center">
+                    <div class="relative flex-1 max-w-md w-full">
+                        <input type="text" id="search-input" placeholder="جستجوی محصولات..." 
+                               class="w-full mobile-px-3 mobile-py-2 px-4 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white mobile-text-sm">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                    </div>
+                    <button onclick="searchProducts()" class="bg-purple-600 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-lg hover:bg-purple-700 transition-colors mobile-text-sm sm:text-base whitespace-nowrap">
+                        جستجو
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Categories -->
+            <div class="mobile-mb-4 mb-6 lg:mb-8">
+                <div class="flex flex-wrap justify-center mobile-gap-2 gap-3 lg:gap-4">
+                    <button onclick="filterProducts('all')" class="filter-btn bg-purple-600 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-lg hover:bg-purple-700 transition-colors mobile-text-sm sm:text-base">
+                        همه محصولات
+                    </button>
+                    <button onclick="filterProducts('telegram')" class="filter-btn bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors mobile-text-sm sm:text-base">
+                        تلگرام پرمیوم
+                    </button>
+                    <button onclick="filterProducts('giftcard')" class="filter-btn bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors mobile-text-sm sm:text-base">
+                        گیفت کارت
+                    </button>
+                    <button onclick="filterProducts('uc')" class="filter-btn bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors mobile-text-sm sm:text-base">
+                        یوسی پابجی
+                    </button>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mobile-gap-3 gap-4 lg:gap-6">
+                <!-- Products will be loaded here -->
+            </div>
+
+            <!-- Loading State -->
+            <div id="products-loading" class="hidden text-center py-8">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-600 dark:text-gray-300">در حال بارگذاری محصولات...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="products-empty" class="hidden text-center py-12">
+                <div class="text-6xl mb-4">😔</div>
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">محصولی یافت نشد</h3>
+                <p class="text-gray-600 dark:text-gray-300">هیچ محصولی با فیلترهای انتخابی شما مطابقت ندارد.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Owner Login Page -->
+    <div id="owner-login-page" class="page hidden full-viewport desktop-full-height bg-gray-50 dark:bg-gray-900">
+        <div class="min-h-full flex items-center justify-center mobile-py-4 py-8 lg:py-12 mobile-px-3 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full space-y-6 lg:space-y-8">
+                <div>
+                    <div class="mx-auto mobile-text-2xl h-12 w-12 lg:h-16 lg:w-16 flex items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900">
+                        <span class="mobile-text-xl text-2xl lg:text-3xl">🔐</span>
+                    </div>
+                    <h2 class="mt-4 lg:mt-6 text-center mobile-text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                        ورود مالک سایت
+                    </h2>
+                    <p class="mt-2 text-center mobile-text-sm text-sm lg:text-base text-gray-600 dark:text-gray-300">
+                        لطفاً اطلاعات مالک را وارد کنید
+                    </p>
+                </div>
+                <form id="owner-login-form" class="mt-6 lg:mt-8 space-y-4 lg:space-y-6">
+                    <div class="space-y-3 lg:space-y-4">
+                        <div>
+                            <label for="owner-username" class="block mobile-text-sm text-sm lg:text-base font-medium text-gray-700 dark:text-gray-300 mobile-mb-2 mb-2">نام کاربری</label>
+                            <input id="owner-username" name="username" type="text" required 
+                                   class="w-full mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 mobile-text-sm lg:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                        </div>
+                        <div>
+                            <label for="owner-password" class="block mobile-text-sm text-sm lg:text-base font-medium text-gray-700 dark:text-gray-300 mobile-mb-2 mb-2">رمز عبور</label>
+                            <input id="owner-password" name="password" type="password" required 
+                                   class="w-full mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 mobile-text-sm lg:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                        </div>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="w-full flex justify-center mobile-py-2 py-2 lg:py-3 mobile-px-3 px-4 lg:px-6 border border-transparent rounded-md shadow-sm mobile-text-sm text-sm lg:text-base font-medium text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors">
+                            ورود به پنل مدیریت
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="button" onclick="showPage('home')" class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-500 mobile-text-sm text-sm lg:text-base">
+                            بازگشت به صفحه اصلی
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Login/Register Page -->
+    <div id="user-login-page" class="page hidden full-viewport desktop-full-height bg-gray-50 dark:bg-gray-900">
+        <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full space-y-8">
+                <!-- Login Form -->
+                <div id="user-login-form-container">
+                    <div>
+                        <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                            <span class="text-2xl">👤</span>
+                        </div>
+                        <h2 class="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+                            ورود کاربر
+                        </h2>
+                        <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
+                            به حساب کاربری خود وارد شوید
+                        </p>
+                    </div>
+                    <form id="user-login-form" class="mt-8 space-y-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="user-login-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نام کاربری</label>
+                                <input id="user-login-username" name="username" type="text" required 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label for="user-login-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">رمز عبور</label>
+                                <input id="user-login-password" name="password" type="password" required 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                ورود
+                            </button>
+                        </div>
+                        
+                        <div class="text-center space-y-2">
+                            <button type="button" onclick="showRegisterForm()" class="text-blue-600 dark:text-blue-400 hover:text-blue-500 text-sm">
+                                حساب کاربری ندارید؟ ثبت نام کنید
+                            </button>
+                            <br>
+                            <button type="button" onclick="showPage('home')" class="text-gray-600 dark:text-gray-400 hover:text-gray-500 text-sm">
+                                بازگشت به صفحه اصلی
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Register Form -->
+                <div id="user-register-form-container" class="hidden">
+                    <div>
+                        <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+                            <span class="text-2xl">📝</span>
+                        </div>
+                        <h2 class="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+                            ثبت نام کاربر
+                        </h2>
+                        <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-300">
+                            حساب کاربری جدید ایجاد کنید
+                        </p>
+                    </div>
+                    <form id="user-register-form" class="mt-8 space-y-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="user-register-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نام و نام خانوادگی</label>
+                                <input id="user-register-name" name="name" type="text" required 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label for="user-register-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نام کاربری</label>
+                                <input id="user-register-username" name="username" type="text" required 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label for="user-register-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">رمز عبور</label>
+                                <input id="user-register-password" name="password" type="password" required 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label for="user-register-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ایمیل (اختیاری)</label>
+                                <input id="user-register-email" name="email" type="email" 
+                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                                ثبت نام
+                            </button>
+                        </div>
+                        
+                        <div class="text-center space-y-2">
+                            <button type="button" onclick="showLoginForm()" class="text-green-600 dark:text-green-400 hover:text-green-500 text-sm">
+                                قبلاً ثبت نام کرده‌اید؟ وارد شوید
+                            </button>
+                            <br>
+                            <button type="button" onclick="showPage('home')" class="text-gray-600 dark:text-gray-400 hover:text-gray-500 text-sm">
+                                بازگشت به صفحه اصلی
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-page" class="page hidden full-viewport desktop-full-height bg-gray-50 dark:bg-gray-900">
+        <div class="container-responsive py-6 sm:py-8 lg:py-12 min-h-full">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg mobile-px-3 p-4 sm:p-6 lg:p-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mobile-mb-4 mb-6 mobile-gap-3 gap-4">
+                    <h1 class="mobile-text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">پنل مدیریت مالک</h1>
+                    <div class="flex mobile-gap-2 gap-3">
+                        <button onclick="exportData()" class="bg-green-500 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-md hover:bg-green-600 transition-colors mobile-text-sm sm:text-base">
+                            📥 خروجی
+                        </button>
+                        <button onclick="logout()" class="bg-red-500 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-md hover:bg-red-600 transition-colors mobile-text-sm sm:text-base">
+                            خروج
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mobile-gap-3 gap-4 mobile-mb-4 mb-6 lg:mb-8">
+                    <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
+                        <div class="text-blue-600 dark:text-blue-300 text-sm font-medium">تعداد محصولات</div>
+                        <div class="text-2xl font-bold text-blue-700 dark:text-blue-200" id="products-count">0</div>
+                    </div>
+                    <div class="bg-green-50 dark:bg-green-900 p-4 rounded-lg">
+                        <div class="text-green-600 dark:text-green-300 text-sm font-medium">کاربران ثبت‌نامی</div>
+                        <div class="text-2xl font-bold text-green-700 dark:text-green-200" id="users-count">0</div>
+                    </div>
+                    <div class="bg-yellow-50 dark:bg-yellow-900 p-4 rounded-lg">
+                        <div class="text-yellow-600 dark:text-yellow-300 text-sm font-medium">فروش کل</div>
+                        <div class="text-2xl font-bold text-yellow-700 dark:text-yellow-200" id="total-sales">0</div>
+                    </div>
+                    <div class="bg-purple-50 dark:bg-purple-900 p-4 rounded-lg">
+                        <div class="text-purple-600 dark:text-purple-300 text-sm font-medium">درآمد</div>
+                        <div class="text-2xl font-bold text-purple-700 dark:text-purple-200" id="total-revenue">0</div>
+                    </div>
+                </div>
+                
+                <!-- Logo Management -->
+                <div class="mobile-mb-4 mb-6 lg:mb-8 mobile-px-3 p-4 lg:p-6 bg-green-50 dark:bg-green-900 rounded-lg">
+                    <h2 class="mobile-text-base sm:text-lg lg:text-xl font-semibold mobile-mb-2 mb-3 lg:mb-4">🖼️ مدیریت لوگوی سایت</h2>
+                    <div class="flex flex-col lg:flex-row flex-wrap mobile-gap-2 gap-3 lg:gap-4 items-stretch lg:items-end">
+                        <div class="flex-1 min-w-full lg:min-w-48">
+                            <label for="logo-file" class="block mobile-text-sm text-sm font-medium text-gray-700 dark:text-gray-300 mobile-mb-2 mb-2">انتخاب لوگوی جدید</label>
+                            <input type="file" id="logo-file" accept="image/*" class="w-full mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 mobile-text-sm bg-white dark:bg-gray-700">
+                        </div>
+                        <div class="flex flex-col sm:flex-row mobile-gap-2 gap-3 w-full lg:w-auto">
+                            <button onclick="uploadLogo()" class="bg-green-600 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-md hover:bg-green-700 transition-colors mobile-text-sm sm:text-base">
+                                اعمال لوگو
+                            </button>
+                            <button onclick="removeLogo()" class="bg-red-500 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-md hover:bg-red-600 transition-colors mobile-text-sm sm:text-base">
+                                حذف لوگو
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 lg:mt-4 mobile-text-sm text-sm lg:text-base text-gray-600 dark:text-gray-300">
+                        <div class="flex items-center gap-3">
+                            <span>لوگوی فعلی:</span>
+                            <div id="current-logo-preview" class="flex items-center gap-2">
+                                <span id="logo-status" class="font-semibold">متن پیش‌فرض</span>
+                            </div>
+                        </div>
+                        <p class="mt-1">فرمت‌های پشتیبانی شده: JPG, PNG, GIF, SVG (حداکثر اندازه: 2MB)</p>
+                    </div>
+                </div>
+
+                <!-- Font Management -->
+                <div class="mobile-mb-4 mb-6 lg:mb-8 mobile-px-3 p-4 lg:p-6 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                    <h2 class="mobile-text-base sm:text-lg lg:text-xl font-semibold mobile-mb-2 mb-3 lg:mb-4">🎨 مدیریت فونت سایت</h2>
+                    <div class="flex flex-col lg:flex-row flex-wrap mobile-gap-2 gap-3 lg:gap-4 items-stretch lg:items-end">
+                        <div class="flex-1 min-w-full lg:min-w-48">
+                            <label for="font-file" class="block mobile-text-sm text-sm font-medium text-gray-700 dark:text-gray-300 mobile-mb-2 mb-2">انتخاب فونت جدید</label>
+                            <input type="file" id="font-file" accept=".ttf,.otf,.woff,.woff2" class="w-full mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mobile-text-sm bg-white dark:bg-gray-700">
+                        </div>
+                        <div class="w-full lg:w-48">
+                            <label for="font-name" class="block mobile-text-sm text-sm font-medium text-gray-700 dark:text-gray-300 mobile-mb-2 mb-2">نام فونت</label>
+                            <input type="text" id="font-name" placeholder="نام فونت" class="w-full mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mobile-text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        <div class="flex flex-col sm:flex-row mobile-gap-2 gap-3 w-full lg:w-auto">
+                            <button onclick="uploadFont()" class="bg-blue-600 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-md hover:bg-blue-700 transition-colors mobile-text-sm sm:text-base">
+                                اعمال فونت
+                            </button>
+                            <button onclick="resetFont()" class="bg-gray-500 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-md hover:bg-gray-600 transition-colors mobile-text-sm sm:text-base">
+                                بازگشت به پیش‌فرض
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 lg:mt-4 mobile-text-sm text-sm lg:text-base text-gray-600 dark:text-gray-300">
+                        <p>فونت فعلی: <span id="current-font-name" class="font-semibold">Vazir (پیش‌فرض)</span></p>
+                        <p class="mt-1">فرمت‌های پشتیبانی شده: TTF, OTF, WOFF, WOFF2</p>
+                    </div>
+                </div>
+
+                <!-- Quick Add Product -->
+                <div class="mobile-mb-4 mb-6 lg:mb-8 mobile-px-3 p-4 lg:p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h2 class="mobile-text-base sm:text-lg lg:text-xl font-semibold mobile-mb-2 mb-3 lg:mb-4">➕ افزودن محصول جدید</h2>
+                    <form id="add-product-form" class="space-y-3 lg:space-y-4">
+                        <div class="flex flex-col lg:flex-row flex-wrap mobile-gap-2 gap-3">
+                            <input type="text" id="product-name" placeholder="نام محصول" class="flex-1 min-w-full lg:min-w-48 mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 mobile-text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white" required>
+                            <input type="number" id="product-price" placeholder="قیمت (تومان)" class="w-full lg:w-32 mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 mobile-text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white" required>
+                            <select id="product-category" class="w-full lg:w-36 mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 mobile-text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white" required>
+                                <option value="telegram">تلگرام</option>
+                                <option value="giftcard">گیفت کارت</option>
+                                <option value="uc">یوسی</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col lg:flex-row flex-wrap mobile-gap-2 gap-3">
+                            <div class="flex-1 min-w-full lg:min-w-48">
+                                <label for="product-image-file" class="block mobile-text-sm text-sm font-medium text-gray-700 dark:text-gray-300 mobile-mb-2 mb-1">عکس محصول</label>
+                                <input type="file" id="product-image-file" accept="image/*" class="w-full mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 mobile-text-sm bg-white dark:bg-gray-700">
+                            </div>
+                            <div class="flex-1 min-w-full lg:min-w-48">
+                                <label for="product-link" class="block mobile-text-sm text-sm font-medium text-gray-700 dark:text-gray-300 mobile-mb-2 mb-1">لینک اضافی (اختیاری)</label>
+                                <input type="url" id="product-link" placeholder="لینک اضافی" class="w-full mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 mobile-text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                            </div>
+                        </div>
+                        <textarea id="product-description" placeholder="توضیحات محصول (اختیاری)" class="w-full mobile-px-3 mobile-py-2 px-3 py-2 lg:py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 h-16 lg:h-20 resize-none mobile-text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"></textarea>
+                        <button type="submit" class="bg-purple-600 text-white mobile-px-3 mobile-py-2 px-4 py-2 lg:px-6 lg:py-3 rounded-md hover:bg-purple-700 transition-colors mobile-text-sm sm:text-base">
+                            افزودن محصول
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Products Grid -->
+                <h3 class="mobile-text-base sm:text-lg lg:text-xl font-semibold mobile-mb-2 mb-4">📦 مدیریت محصولات</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mobile-gap-3 gap-4 lg:gap-6" id="admin-products-grid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="edit-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-full overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">ویرایش محصول</h3>
+            <form id="edit-product-form" class="space-y-3">
+                <input type="hidden" id="edit-product-id">
+                <input type="text" id="edit-product-name" placeholder="نام محصول" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                <input type="number" id="edit-product-price" placeholder="قیمت" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                <select id="edit-product-category" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                    <option value="telegram">تلگرام</option>
+                    <option value="giftcard">گیفت کارت</option>
+                    <option value="uc">یوسی</option>
+                </select>
+                <div>
+                    <label for="edit-product-image-file" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">عکس محصول</label>
+                    <input type="file" id="edit-product-image-file" accept="image/*" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700">
+                    <input type="hidden" id="edit-product-image" value="">
+                </div>
+                <div>
+                    <label for="edit-product-link" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">لینک اضافی</label>
+                    <input type="url" id="edit-product-link" placeholder="لینک اضافی" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                </div>
+                <textarea id="edit-product-description" placeholder="توضیحات محصول" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 h-20 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"></textarea>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeEditModal()" class="flex-1 px-3 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        انصراف
+                    </button>
+                    <button type="submit" class="flex-1 px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                        ذخیره
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mobile-py-4 py-6 lg:py-8 mt-8 lg:mt-16 w-full">
+        <div class="container-responsive">
+            <div class="text-center">
+                <div class="mobile-mb-4 mb-6">
+                    <h3 class="mobile-text-base text-lg lg:text-xl font-semibold mobile-mb-2 mb-4">تماس با ما</h3>
+                    
+                    <!-- Email -->
+                    <div class="flex items-center justify-center space-x-2 space-x-reverse mobile-mb-2 mb-4">
+                        <span class="mobile-text-xl text-2xl">📧</span>
+                        <a href="mailto:your-email@example.com" class="text-blue-400 hover:text-blue-300 transition-colors mobile-text-sm text-base lg:text-lg">
+                            your-email@example.com
+                        </a>
+                    </div>
+                    
+                    <!-- Social Media Links -->
+                    <div class="flex flex-col sm:flex-row justify-center mobile-gap-2 gap-4 lg:gap-6 items-center">
+                        <!-- Instagram -->
+                        <a href="https://instagram.com/WorldApiTM" target="_blank" rel="noopener noreferrer" 
+                           class="flex items-center space-x-2 space-x-reverse text-pink-400 hover:text-pink-300 transition-colors mobile-text-sm text-base lg:text-lg">
+                            <span class="mobile-text-xl text-2xl">📷</span>
+                            <span>@WorldApiTM</span>
+                        </a>
+                        
+                        <!-- Telegram -->
+                        <a href="http://t.me/rahmatedit" target="_blank" rel="noopener noreferrer" 
+                           class="flex items-center space-x-2 space-x-reverse text-blue-400 hover:text-blue-300 transition-colors mobile-text-sm text-base lg:text-lg">
+                            <span class="mobile-text-xl text-2xl">✈️</span>
+                            <span>پشتیبانی تلگرام</span>
+                        </a>
+                        
+                        <!-- Facebook -->
+                        <a href="https://facebook.com/Enayatollah.Nazari" target="_blank" rel="noopener noreferrer" 
+                           class="flex items-center space-x-2 space-x-reverse text-blue-500 hover:text-blue-400 transition-colors mobile-text-sm text-base lg:text-lg">
+                            <span class="mobile-text-xl text-2xl">📘</span>
+                            <span>@Enayatollah.Nazari</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-700 pt-3 lg:pt-4">
+                    <p class="text-gray-400 mobile-text-sm text-sm lg:text-base">
+                        © 2024 WorldApiTM - تمامی حقوق محفوظ است
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <script>
+        // Sample products data
+        let products = [
+            {
+                id: 1,
+                name: "تلگرام پرمیوم 1 ماهه",
+                price: 25000,
+                category: "telegram",
+                duration: "1 ماه",
+                description: "دسترسی کامل به امکانات پرمیوم تلگرام برای یک ماه",
+                icon: "💎",
+                image: "",
+                link: ""
+            },
+            {
+                id: 2,
+                name: "گیفت کارت گوگل پلی 10 دلاری",
+                price: 450000,
+                category: "giftcard",
+                duration: "بدون انقضا",
+                description: "گیفت کارت اصل گوگل پلی به ارزش 10 دلار",
+                icon: "🎁",
+                image: "",
+                link: ""
+            },
+            {
+                id: 3,
+                name: "یوسی پابجی 600 UC",
+                price: 120000,
+                category: "uc",
+                duration: "فوری",
+                description: "600 یوسی اصل برای بازی پابجی موبایل",
+                icon: "🎮",
+                image: "",
+                link: ""
+            }
+        ];
+
+        let nextId = 4;
+        let currentFilter = 'all';
+        let isOwnerLoggedIn = false;
+        let isUserLoggedIn = false;
+        let currentUser = null;
+        let users = JSON.parse(localStorage.getItem('worldapi_users') || '[]');
+        
+        // Product showcase variables
+        let showcaseIndex = 0;
+        let showcaseInterval;
+        let selectedProductId = null;
+
+        // Check if user is already logged in
+        function checkSavedLogin() {
+            const savedOwner = localStorage.getItem('worldapi_owner_logged');
+            const savedUser = localStorage.getItem('worldapi_current_user');
+            
+            if (savedOwner === 'true') {
+                isOwnerLoggedIn = true;
+                updateAuthUI('owner');
+            } else if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                isUserLoggedIn = true;
+                updateAuthUI('user');
+            }
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+                menuIcon.textContent = '✕';
+            } else {
+                mobileMenu.classList.add('hidden');
+                menuIcon.textContent = '☰';
+            }
+        }
+
+        // Update authentication UI
+        function updateAuthUI(type) {
+            const authButtons = document.getElementById('auth-buttons');
+            const userMenu = document.getElementById('user-menu');
+            const userName = document.getElementById('user-name');
+            const adminPanelBtn = document.getElementById('admin-panel-btn');
+            
+            // Mobile elements
+            const authButtonsMobile = document.getElementById('auth-buttons-mobile');
+            const userMenuMobile = document.getElementById('user-menu-mobile');
+            const userNameMobile = document.getElementById('user-name-mobile');
+            const adminPanelBtnMobile = document.getElementById('admin-panel-btn-mobile');
+            
+            if (type === 'owner' || type === 'user') {
+                // Desktop
+                authButtons.classList.add('hidden');
+                userMenu.classList.remove('hidden');
+                userName.textContent = type === 'owner' ? 'مالک سایت' : currentUser.name;
+                
+                // Mobile
+                authButtonsMobile.classList.add('hidden');
+                userMenuMobile.classList.remove('hidden');
+                userNameMobile.textContent = type === 'owner' ? 'مالک سایت' : currentUser.name;
+                
+                // Show admin panel button only for owner
+                if (type === 'owner') {
+                    adminPanelBtn.classList.remove('hidden');
+                    adminPanelBtnMobile.classList.remove('hidden');
+                } else {
+                    adminPanelBtn.classList.add('hidden');
+                    adminPanelBtnMobile.classList.add('hidden');
+                }
+            } else {
+                // Desktop
+                authButtons.classList.remove('hidden');
+                userMenu.classList.add('hidden');
+                adminPanelBtn.classList.add('hidden');
+                
+                // Mobile
+                authButtonsMobile.classList.remove('hidden');
+                userMenuMobile.classList.add('hidden');
+                adminPanelBtnMobile.classList.add('hidden');
+            }
+        }
+
+        // Login system
+        function showOwnerLoginPage() {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('owner-login-page').classList.remove('hidden');
+        }
+
+        function showUserLoginPage() {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('user-login-page').classList.remove('hidden');
+            showLoginForm();
+        }
+
+        function showLoginForm() {
+            document.getElementById('user-login-form-container').classList.remove('hidden');
+            document.getElementById('user-register-form-container').classList.add('hidden');
+        }
+
+        function showRegisterForm() {
+            document.getElementById('user-login-form-container').classList.add('hidden');
+            document.getElementById('user-register-form-container').classList.remove('hidden');
+        }
+
+        function logout() {
+            isOwnerLoggedIn = false;
+            isUserLoggedIn = false;
+            currentUser = null;
+            localStorage.removeItem('worldapi_owner_logged');
+            localStorage.removeItem('worldapi_current_user');
+            updateAuthUI('logout');
+            showPage('home');
+            showMessage('با موفقیت خارج شدید', 'success');
+        }
+
+        // Owner login form handler
+        document.getElementById('owner-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('owner-username').value;
+            const password = document.getElementById('owner-password').value;
+            
+            if (username === 'Enayatollah' && password === 'En12015@Ny') {
+                isOwnerLoggedIn = true;
+                localStorage.setItem('worldapi_owner_logged', 'true');
+                updateAuthUI('owner');
+                showPage('admin');
+                showMessage('خوش آمدید مالک محترم! با موفقیت وارد شدید', 'success');
+                this.reset();
+            } else {
+                showMessage('نام کاربری یا رمز عبور مالک اشتباه است', 'error');
+            }
+        });
+
+        // User login form handler
+        document.getElementById('user-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('user-login-username').value;
+            const password = document.getElementById('user-login-password').value;
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                isUserLoggedIn = true;
+                currentUser = user;
+                localStorage.setItem('worldapi_current_user', JSON.stringify(user));
+                updateAuthUI('user');
+                showPage('home');
+                showMessage(`خوش آمدید ${user.name}! با موفقیت وارد شدید`, 'success');
+                this.reset();
+            } else {
+                showMessage('نام کاربری یا رمز عبور اشتباه است', 'error');
+            }
+        });
+
+        // User register form handler
+        document.getElementById('user-register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('user-register-name').value;
+            const username = document.getElementById('user-register-username').value;
+            const password = document.getElementById('user-register-password').value;
+            const email = document.getElementById('user-register-email').value;
+            
+            // Check if username already exists
+            if (users.find(u => u.username === username)) {
+                showMessage('این نام کاربری قبلاً ثبت شده است', 'error');
+                return;
+            }
+            
+            const newUser = {
+                id: Date.now(),
+                name,
+                username,
+                password,
+                email,
+                registeredAt: new Date().toISOString()
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('worldapi_users', JSON.stringify(users));
+            
+            showMessage('ثبت نام با موفقیت انجام شد! حالا می‌توانید وارد شوید', 'success');
+            this.reset();
+            showLoginForm();
+        });
+
+        // Page navigation
+        function showPage(page) {
+            // Check admin access
+            if (page === 'admin' && !isOwnerLoggedIn) {
+                showMessage('برای دسترسی به پنل مدیریت باید به عنوان مالک وارد شوید', 'error');
+                showOwnerLoginPage();
+                return;
+            }
+            
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(page + '-page').classList.remove('hidden');
+            
+            if (page === 'shop') {
+                loadProducts();
+            } else if (page === 'admin') {
+                loadAdminProducts();
+                updateAdminStats();
+            }
+            
+            // Close mobile menu if open
+            document.getElementById('mobile-menu').classList.add('hidden');
+            document.getElementById('menu-icon').textContent = '☰';
+        }
+
+        // Product filtering
+        function filterProducts(category) {
+            currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+            });
+            event.target.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+            event.target.classList.add('bg-purple-600', 'text-white');
+            loadProducts();
+        }
+
+        // Search products
+        function searchProducts() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            loadProducts(searchTerm);
+        }
+
+        // Load products in shop
+        function loadProducts(searchTerm = '') {
+            const grid = document.getElementById('products-grid');
+            const loading = document.getElementById('products-loading');
+            const empty = document.getElementById('products-empty');
+            
+            // Show loading
+            grid.innerHTML = '';
+            loading.classList.remove('hidden');
+            empty.classList.add('hidden');
+            
+            setTimeout(() => {
+                let filteredProducts = currentFilter === 'all' ? products : products.filter(p => p.category === currentFilter);
+                
+                // Apply search filter
+                if (searchTerm) {
+                    filteredProducts = filteredProducts.filter(product => 
+                        product.name.toLowerCase().includes(searchTerm) ||
+                        product.description.toLowerCase().includes(searchTerm) ||
+                        product.category.toLowerCase().includes(searchTerm)
+                    );
+                }
+                
+                loading.classList.add('hidden');
+                
+                if (filteredProducts.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                
+                grid.innerHTML = filteredProducts.map(product => `
+                    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md mobile-px-3 mobile-py-4 p-4 lg:p-6 card-hover">
+                        <div class="text-center mobile-mb-2 mb-4">
+                            ${product.image ? 
+                                `<img src="${product.image}" alt="${product.name}" class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto mobile-mb-2 mb-3 rounded-lg object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                 <div class="mobile-text-2xl text-3xl lg:text-4xl mobile-mb-2 mb-2" style="display:none">${product.icon}</div>` :
+                                `<div class="mobile-text-2xl text-3xl lg:text-4xl mobile-mb-2 mb-2">${product.icon}</div>`
+                            }
+                            <h3 class="mobile-text-base text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">${product.name}</h3>
+                        </div>
+                        <div class="space-y-1 lg:space-y-2 mobile-mb-2 mb-4">
+                            <p class="mobile-text-sm text-gray-600 dark:text-gray-300 lg:text-base"><span class="font-medium">قیمت:</span> ${product.price.toLocaleString()} تومان</p>
+                            <p class="mobile-text-sm text-gray-600 dark:text-gray-300 lg:text-base"><span class="font-medium">مدت زمان:</span> ${product.duration}</p>
+                            <p class="mobile-text-sm text-gray-600 dark:text-gray-300 text-sm lg:text-base">${product.description}</p>
+                            ${product.link ? `<a href="${product.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mobile-text-sm text-sm lg:text-base block">🔗 اطلاعات بیشتر</a>` : ''}
+                        </div>
+                        <button onclick="buyProduct(${product.id})" class="w-full bg-purple-600 text-white mobile-py-2 py-2 lg:py-3 rounded-md hover:bg-purple-700 transition-colors mobile-text-sm sm:text-base">
+                            خرید محصول
+                        </button>
+                    </div>
+                `).join('');
+            }, 500); // Simulate loading
+        }
+
+        // Load products in admin panel
+        function loadAdminProducts() {
+            const grid = document.getElementById('admin-products-grid');
+            grid.innerHTML = products.map(product => `
+                <div class="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg mobile-px-3 mobile-py-3 p-4 lg:p-5 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mobile-mb-2 mb-3">
+                        <div class="mobile-text-xl text-2xl lg:text-3xl">${product.icon}</div>
+                        <div class="flex mobile-gap-2 gap-2 lg:gap-3">
+                            <button onclick="editProduct(${product.id})" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mobile-text-base text-lg">✏️</button>
+                            <button onclick="deleteProduct(${product.id})" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 mobile-text-base text-lg">🗑️</button>
+                        </div>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mobile-mb-2 mb-2 mobile-text-sm text-sm lg:text-base">${product.name}</h3>
+                    <div class="mobile-text-sm text-sm lg:text-base text-gray-600 dark:text-gray-300 space-y-1">
+                        <p><span class="font-medium">قیمت:</span> ${product.price.toLocaleString()} تومان</p>
+                        <p><span class="font-medium">دسته:</span> ${
+                            product.category === 'telegram' ? 'تلگرام' : 
+                            product.category === 'giftcard' ? 'گیفت کارت' : 'یوسی'
+                        }</p>
+                        ${product.image ? '<p class="text-green-600 dark:text-green-400">✓ دارای عکس</p>' : ''}
+                        ${product.link ? '<p class="text-blue-600 dark:text-blue-400">🔗 دارای لینک</p>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update admin statistics
+        function updateAdminStats() {
+            document.getElementById('products-count').textContent = products.length;
+            document.getElementById('users-count').textContent = users.length;
+            
+            const totalSales = products.reduce((sum, product) => sum + product.price, 0);
+            document.getElementById('total-sales').textContent = totalSales.toLocaleString();
+            document.getElementById('total-revenue').textContent = totalSales.toLocaleString();
+        }
+
+        // Logo management functions
+        function uploadLogo() {
+            const logoFile = document.getElementById('logo-file').files[0];
+            
+            if (!logoFile) {
+                showMessage('لطفاً یک فایل تصویر انتخاب کنید', 'error');
+                return;
+            }
+            
+            // Check file size (2MB limit)
+            if (logoFile.size > 2 * 1024 * 1024) {
+                showMessage('حجم فایل نباید بیشتر از 2 مگابایت باشد', 'error');
+                return;
+            }
+            
+            // Check file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'];
+            if (!allowedTypes.includes(logoFile.type)) {
+                showMessage('فرمت فایل پشتیبانی نمی‌شود. لطفاً JPG، PNG، GIF یا SVG انتخاب کنید', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const logoData = e.target.result;
+                
+                // Apply logo to both desktop and mobile
+                applyLogo(logoData);
+                
+                // Save logo data to localStorage
+                localStorage.setItem('worldapi_custom_logo', logoData);
+                
+                // Update preview
+                updateLogoPreview(logoData);
+                
+                showMessage('لوگو با موفقیت اعمال شد!', 'success');
+                
+                // Clear form
+                document.getElementById('logo-file').value = '';
+            };
+            
+            reader.readAsDataURL(logoFile);
+        }
+        
+        function removeLogo() {
+            // Show default text logo
+            showDefaultLogo();
+            
+            // Remove from localStorage
+            localStorage.removeItem('worldapi_custom_logo');
+            
+            // Update preview
+            updateLogoPreview(null);
+            
+            showMessage('لوگو حذف شد و به متن پیش‌فرض بازگشت', 'success');
+        }
+        
+        function applyLogo(logoData) {
+            // Desktop logo
+            document.getElementById('default-text-logo').classList.add('hidden');
+            document.getElementById('custom-logo').classList.remove('hidden');
+            document.getElementById('site-logo-img').src = logoData;
+            
+            // Mobile logo
+            document.getElementById('mobile-default-text-logo').classList.add('hidden');
+            document.getElementById('mobile-custom-logo').classList.remove('hidden');
+            document.getElementById('mobile-site-logo-img').src = logoData;
+        }
+        
+        function showDefaultLogo() {
+            // Desktop logo
+            document.getElementById('default-text-logo').classList.remove('hidden');
+            document.getElementById('custom-logo').classList.add('hidden');
+            
+            // Mobile logo
+            document.getElementById('mobile-default-text-logo').classList.remove('hidden');
+            document.getElementById('mobile-custom-logo').classList.add('hidden');
+        }
+        
+        function updateLogoPreview(logoData) {
+            const logoStatus = document.getElementById('logo-status');
+            const logoPreview = document.getElementById('current-logo-preview');
+            
+            if (logoData) {
+                logoStatus.textContent = 'لوگوی سفارشی';
+                
+                // Add preview image if not exists
+                let previewImg = logoPreview.querySelector('img');
+                if (!previewImg) {
+                    previewImg = document.createElement('img');
+                    previewImg.className = 'h-8 w-auto max-w-24 rounded border';
+                    previewImg.alt = 'پیش‌نمایش لوگو';
+                    logoPreview.appendChild(previewImg);
+                }
+                previewImg.src = logoData;
+            } else {
+                logoStatus.textContent = 'متن پیش‌فرض';
+                const previewImg = logoPreview.querySelector('img');
+                if (previewImg) {
+                    previewImg.remove();
+                }
+            }
+        }
+        
+        function loadSavedLogo() {
+            const savedLogo = localStorage.getItem('worldapi_custom_logo');
+            if (savedLogo) {
+                applyLogo(savedLogo);
+                updateLogoPreview(savedLogo);
+            }
+        }
+
+        // Font management functions
+        function uploadFont() {
+            const fontFile = document.getElementById('font-file').files[0];
+            const fontName = document.getElementById('font-name').value;
+            
+            if (!fontFile) {
+                showMessage('لطفاً یک فایل فونت انتخاب کنید', 'error');
+                return;
+            }
+            
+            if (!fontName) {
+                showMessage('لطفاً نام فونت را وارد کنید', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fontData = e.target.result;
+                
+                // Create font face
+                const fontFace = new FontFace(fontName, `url(${fontData})`);
+                
+                fontFace.load().then(function(loadedFont) {
+                    document.fonts.add(loadedFont);
+                    
+                    // Apply font to body
+                    document.body.style.fontFamily = `'${fontName}', 'Vazir', sans-serif`;
+                    
+                    // Save font data to localStorage
+                    localStorage.setItem('worldapi_custom_font', JSON.stringify({
+                        name: fontName,
+                        data: fontData
+                    }));
+                    
+                    // Update current font display
+                    document.getElementById('current-font-name').textContent = fontName;
+                    
+                    showMessage(`فونت "${fontName}" با موفقیت اعمال شد!`, 'success');
+                    
+                    // Clear form
+                    document.getElementById('font-file').value = '';
+                    document.getElementById('font-name').value = '';
+                }).catch(function() {
+                    showMessage('خطا در بارگذاری فونت. لطفاً فایل معتبری انتخاب کنید', 'error');
+                });
+            };
+            
+            reader.readAsDataURL(fontFile);
+        }
+        
+        function resetFont() {
+            document.body.style.fontFamily = "'Vazir', sans-serif";
+            localStorage.removeItem('worldapi_custom_font');
+            document.getElementById('current-font-name').textContent = 'Vazir (پیش‌فرض)';
+            showMessage('فونت به حالت پیش‌فرض بازگشت', 'success');
+        }
+        
+        function loadSavedFont() {
+            const savedFont = localStorage.getItem('worldapi_custom_font');
+            if (savedFont) {
+                const fontInfo = JSON.parse(savedFont);
+                const fontFace = new FontFace(fontInfo.name, `url(${fontInfo.data})`);
+                
+                fontFace.load().then(function(loadedFont) {
+                    document.fonts.add(loadedFont);
+                    document.body.style.fontFamily = `'${fontInfo.name}', 'Vazir', sans-serif`;
+                    document.getElementById('current-font-name').textContent = fontInfo.name;
+                }).catch(function() {
+                    console.log('Error loading saved font');
+                });
+            }
+        }
+        
+        // Theme management
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('worldapi_theme', isDark ? 'dark' : 'light');
+            
+            const themeIcon = document.getElementById('theme-icon');
+            themeIcon.textContent = isDark ? '☀️' : '🌙';
+            
+            showMessage(`حالت ${isDark ? 'تاریک' : 'روشن'} فعال شد`, 'success');
+        }
+        
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('worldapi_theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').textContent = '☀️';
+            }
+        }
+        
+        // Image handling functions
+        function handleImageUpload(fileInput, callback) {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    callback(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                callback('');
+            }
+        }
+
+        // Add new product
+        document.getElementById('add-product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('product-name').value;
+            const price = parseInt(document.getElementById('product-price').value);
+            const category = document.getElementById('product-category').value;
+            const imageFile = document.getElementById('product-image-file');
+            const link = document.getElementById('product-link').value;
+            const description = document.getElementById('product-description').value;
+            
+            handleImageUpload(imageFile, function(imageData) {
+                const icons = {
+                    telegram: '💎',
+                    giftcard: '🎁',
+                    uc: '🎮'
+                };
+                
+                const durations = {
+                    telegram: '1 ماه',
+                    giftcard: 'بدون انقضا',
+                    uc: 'فوری'
+                };
+                
+                const defaultDescriptions = {
+                    telegram: 'دسترسی کامل به امکانات پرمیوم تلگرام',
+                    giftcard: 'گیفت کارت اصل و معتبر',
+                    uc: 'یوسی اصل برای بازی پابجی موبایل'
+                };
+                
+                const newProduct = {
+                    id: nextId++,
+                    name,
+                    price,
+                    category,
+                    duration: durations[category],
+                    description: description || defaultDescriptions[category],
+                    icon: icons[category],
+                    image: imageData,
+                    link: link || ''
+                };
+                
+                products.push(newProduct);
+                loadAdminProducts();
+                updateAdminStats();
+                document.getElementById('add-product-form').reset();
+                
+                // Update showcase if we're on home page
+                if (!document.getElementById('home-page').classList.contains('hidden')) {
+                    stopProductShowcase();
+                    startProductShowcase();
+                }
+                
+                showMessage('محصول با موفقیت اضافه شد!', 'success');
+            });
+        });
+
+        // Edit product
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                document.getElementById('edit-product-id').value = product.id;
+                document.getElementById('edit-product-name').value = product.name;
+                document.getElementById('edit-product-price').value = product.price;
+                document.getElementById('edit-product-category').value = product.category;
+                document.getElementById('edit-product-image').value = product.image || '';
+                document.getElementById('edit-product-link').value = product.link || '';
+                document.getElementById('edit-product-description').value = product.description || '';
+                
+                // Clear file input
+                document.getElementById('edit-product-image-file').value = '';
+                
+                document.getElementById('edit-modal').classList.remove('hidden');
+                document.getElementById('edit-modal').classList.add('flex');
+            }
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('flex');
+        }
+
+        // Save edited product
+        document.getElementById('edit-product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = parseInt(document.getElementById('edit-product-id').value);
+            const name = document.getElementById('edit-product-name').value;
+            const price = parseInt(document.getElementById('edit-product-price').value);
+            const category = document.getElementById('edit-product-category').value;
+            const currentImage = document.getElementById('edit-product-image').value;
+            const imageFile = document.getElementById('edit-product-image-file');
+            const link = document.getElementById('edit-product-link').value;
+            const description = document.getElementById('edit-product-description').value;
+            
+            const productIndex = products.findIndex(p => p.id === id);
+            if (productIndex !== -1) {
+                // Handle image update
+                const updateProduct = function(imageData) {
+                    const icons = {
+                        telegram: '💎',
+                        giftcard: '🎁',
+                        uc: '🎮'
+                    };
+                    
+                    const durations = {
+                        telegram: '1 ماه',
+                        giftcard: 'بدون انقضا',
+                        uc: 'فوری'
+                    };
+                    
+                    products[productIndex] = {
+                        ...products[productIndex],
+                        name,
+                        price,
+                        category,
+                        duration: durations[category],
+                        description,
+                        icon: icons[category],
+                        image: imageData || currentImage,
+                        link: link || ''
+                    };
+                    
+                    loadAdminProducts();
+                    updateAdminStats();
+                    closeEditModal();
+                    
+                    // Update showcase if we're on home page
+                    if (!document.getElementById('home-page').classList.contains('hidden')) {
+                        stopProductShowcase();
+                        startProductShowcase();
+                    }
+                    
+                    showMessage('محصول با موفقیت ویرایش شد!', 'success');
+                };
+                
+                // Check if new image is selected
+                if (imageFile.files[0]) {
+                    handleImageUpload(imageFile, updateProduct);
+                } else {
+                    updateProduct(currentImage);
+                }
+            }
+        });
+
+        // Delete product
+        function deleteProduct(id) {
+            // Custom confirmation instead of browser confirm
+            const productName = products.find(p => p.id === id)?.name;
+            if (showConfirmation(`آیا مطمئن هستید که می‌خواهید "${productName}" را حذف کنید؟`)) {
+                products = products.filter(p => p.id !== id);
+                loadAdminProducts();
+                updateAdminStats();
+                
+                // Update showcase if we're on home page
+                if (!document.getElementById('home-page').classList.contains('hidden')) {
+                    stopProductShowcase();
+                    startProductShowcase();
+                }
+                
+                showMessage('محصول با موفقیت حذف شد!', 'success');
+            }
+        }
+
+        // Buy product
+        function buyProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                // Redirect to Telegram with product info
+                const message = `سلام! می‌خواهم "${product.name}" را خریداری کنم. قیمت: ${product.price.toLocaleString()} تومان`;
+                const telegramUrl = `http://t.me/rahmatedit?text=${encodeURIComponent(message)}`;
+                window.open(telegramUrl, '_blank', 'noopener,noreferrer');
+                
+                showMessage(`در حال هدایت به تلگرام برای خرید "${product.name}"...`, 'success');
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const data = {
+                products,
+                users,
+                exportDate: new Date().toISOString(),
+                version: '1.0.0'
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `worldapi-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            showMessage('داده‌ها با موفقیت export شدند', 'success');
+        }
+
+        // Show message function
+        function showMessage(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                type === 'warning' ? 'bg-yellow-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-xl hover:opacity-70">&times;</button>
+                </div>
+            `;
+            
+            document.getElementById('notification-container').appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Custom confirmation function
+        function showConfirmation(message) {
+            return new Promise((resolve) => {
+                const confirmDiv = document.createElement('div');
+                confirmDiv.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+                confirmDiv.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm mx-4">
+                        <p class="text-gray-900 dark:text-white mb-4">${message}</p>
+                        <div class="flex justify-end space-x-3 space-x-reverse">
+                            <button id="confirm-cancel" class="px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
+                                انصراف
+                            </button>
+                            <button id="confirm-ok" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                                تأیید
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(confirmDiv);
+                
+                document.getElementById('confirm-ok').onclick = () => {
+                    confirmDiv.remove();
+                    resolve(true);
+                };
+                
+                document.getElementById('confirm-cancel').onclick = () => {
+                    confirmDiv.remove();
+                    resolve(false);
+                };
+            });
+        }
+
+        // Product showcase functions
+        function startProductShowcase() {
+            if (products.length === 0) return;
+            
+            updateShowcase();
+            showcaseInterval = setInterval(() => {
+                showcaseIndex = (showcaseIndex + 1) % Math.min(products.length, 3);
+                updateShowcase();
+            }, 15000); // 15 seconds
+        }
+        
+        function updateShowcase() {
+            if (products.length === 0) return;
+            
+            const showcaseProducts = products.slice(0, 3); // Get first 3 products
+            if (showcaseProducts.length === 0) return;
+            
+            const currentProduct = showcaseProducts[showcaseIndex];
+            selectedProductId = currentProduct.id;
+            
+            const showcaseImage = document.getElementById('showcase-image');
+            const showcaseCategory = document.getElementById('showcase-category');
+            
+            // Update image
+            if (currentProduct.image) {
+                showcaseImage.innerHTML = `<img src="${currentProduct.image}" alt="${currentProduct.name}" class="w-full h-full object-cover rounded-lg" onerror="this.style.display='none'; this.parentElement.innerHTML='${currentProduct.icon}';">`;
+            } else {
+                showcaseImage.innerHTML = currentProduct.icon;
+            }
+            
+            // Update category
+            const categoryNames = {
+                telegram: 'تلگرام پرمیوم',
+                giftcard: 'گیفت کارت',
+                uc: 'یوسی پابجی'
+            };
+            showcaseCategory.textContent = categoryNames[currentProduct.category] || currentProduct.category;
+            
+            // Update dots
+            for (let i = 0; i < 3; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (dot) {
+                    if (i === showcaseIndex && i < showcaseProducts.length) {
+                        dot.classList.remove('bg-opacity-50');
+                        dot.classList.add('bg-opacity-100');
+                    } else {
+                        dot.classList.remove('bg-opacity-100');
+                        dot.classList.add('bg-opacity-50');
+                    }
+                    
+                    // Hide dots if not enough products
+                    if (i >= showcaseProducts.length) {
+                        dot.style.display = 'none';
+                    } else {
+                        dot.style.display = 'block';
+                    }
+                }
+            }
+        }
+        
+        function stopProductShowcase() {
+            if (showcaseInterval) {
+                clearInterval(showcaseInterval);
+                showcaseInterval = null;
+            }
+        }
+        
+        function goToProduct() {
+            if (selectedProductId) {
+                showPage('shop');
+                // Scroll to the specific product after a short delay
+                setTimeout(() => {
+                    const productElements = document.querySelectorAll('#products-grid > div');
+                    productElements.forEach((element, index) => {
+                        const buyButton = element.querySelector('button[onclick*="buyProduct"]');
+                        if (buyButton && buyButton.getAttribute('onclick').includes(selectedProductId)) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            element.style.animation = 'pulse 2s ease-in-out';
+                            setTimeout(() => {
+                                element.style.animation = '';
+                            }, 2000);
+                        }
+                    });
+                }, 100);
+            }
+        }
+
+        // Initialize
+        checkSavedLogin();
+        loadSavedFont();
+        loadSavedLogo();
+        loadTheme();
+        showPage('home');
+        startProductShowcase();
+
+        // Service Worker Registration for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } 
+    from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  //    
+  const firebaseConfig = {
+    apiKey: "AIzaSyC45gz-4c1291AYxluEr1Ces3XfTGwCt7Q",
+    authDomain: "mysite-c28a2.firebaseapp.com",
+    projectId: "mysite-c28a2",
+    storageBucket: "mysite-c28a2.firebasestorage.app",
+    messagingSenderId: "96470005461",
+    appId: "1:96470005461:web:d82d0a08ee127ccc55d45c",
+    measurementId: "G-724VWR84FD"
+  };
+
+  //   Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  //   
+  async function addProduct(name, price, image) {
+    await addDoc(collection(db, "products"), {
+      name: name,
+      price: price,
+      image: image
+    });
+    alert("   !");
+    loadProducts(); //       
+  }
+
+  //    
+  async function loadProducts() {
+    const querySnapshot = await getDocs(collection(db, "products"));
+    let list = document.getElementById("product-list");
+    list.innerHTML = "";
+    querySnapshot.forEach((doc) => {
+      let p = doc.data();
+      list.innerHTML += `
+        <div class="product" style="border:1px solid #ddd;padding:10px;margin:10px;border-radius:10px;display:inline-block;text-align:center;">
+          <img src="${p.image}" width="120" style="border-radius:10px"><br>
+          <b>${p.name}</b><br>
+          ${p.price} 
+        </div>
+      `;
+    });
+  }
+
+  //   
+  loadProducts();
+</script>    
+</body>
+</html>
